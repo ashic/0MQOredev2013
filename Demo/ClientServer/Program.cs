@@ -19,7 +19,7 @@ namespace ClientServer
         {
             var context = NetMQContext.Create();
 
-            string serverAddress = "inproc://foo";
+            string serverAddress = "tcp://127.0.0.1:9988";
 
             var server = new Server(context, "server1");
             var client = new Client(context, "client1");
@@ -28,6 +28,10 @@ namespace ClientServer
 
             server.Start(token.Token, serverAddress).Wait(token.Token);
             client.Start(token.Token, serverAddress).Wait(token.Token);
+
+            Console.WriteLine("Hit enter to add another client.");
+            Console.ReadLine();
+            new Client(context, "client2").Start(token.Token, serverAddress).Wait(token.Token);
 
             Console.WriteLine("Hit enter to terminate.");
             Console.ReadLine();
