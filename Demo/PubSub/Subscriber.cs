@@ -4,17 +4,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using NetMQ;
 
-namespace ClientServer
+namespace PubSub
 {
-    public class Server
+    public class Subscriber
     {
         private readonly NetMQContext _context;
         private readonly string _id;
+        private readonly string _topic;
 
-        public Server(NetMQContext context, string id)
+        public Subscriber(NetMQContext context, string id, string topic)
         {
             _context = context;
             _id = id;
+            _topic = topic;
         }
 
         public Task Start(CancellationToken token, string address)
@@ -26,18 +28,18 @@ namespace ClientServer
 
         private void start(CancellationToken token, string address, TaskCompletionSource<bool> ready)
         {
-            using (var socket = _context.CreateResponseSocket())
+            using (var socket = _context.CreateSubscriberSocket())
             {
-                socket.Bind(address);
+                socket.Subscribe(Encoding.ASCII.GetBytes(_topic));
+                socket.Connect(address);
                 ready.SetResult(true);
+
                 while (token.IsCancellationRequested == false)
                 {
-                    var bytes = socket.Receive();
-                    var sender = Encoding.ASCII.GetString(bytes);
-                    Console.WriteLine("[{0}] Received request from {1}", _id, sender);
-                    Task.Delay(TimeSpan.FromSeconds(3), token).Wait(token);
-                    var message = string.Format("{0} says {1}.", _id, DateTime.Now);
-                    socket.Send(Encoding.ASCII.GetBytes(message));
+                    socket.Receive(); //ignore topic
+                    var messageBytes = socket.Receive();
+                    var message = Encoding.ASCII.GetString(messageBytes);
+                    Console.WriteLine("[{0}] Received - {1}", _id, message);
                 }
             }
         }
