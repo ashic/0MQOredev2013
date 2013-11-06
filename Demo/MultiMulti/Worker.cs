@@ -4,14 +4,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using NetMQ;
 
-namespace ClientServer
+namespace MultiMulti
 {
-    public class Server
+    public class Worker
     {
         private readonly NetMQContext _context;
         private readonly string _id;
 
-        public Server(NetMQContext context, string id)
+        public Worker(NetMQContext context, string id)
         {
             _context = context;
             _id = id;
@@ -28,7 +28,7 @@ namespace ClientServer
         {
             using (var socket = _context.CreateResponseSocket())
             {
-                socket.Bind(address);
+                socket.Connect(address);
                 ready.SetResult(true);
                 while (token.IsCancellationRequested == false)
                 {

@@ -25,7 +25,7 @@ namespace Ventilator
         public Task Start(CancellationToken token, string address)
         {
             var ready = new TaskCompletionSource<bool>();
-            Task.Factory.StartNew(() => start(token, address, ready), token);
+            Task.Factory.StartNew(() => start(token, address, ready), token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             return ready.Task;
         }
 

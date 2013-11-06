@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using NetMQ;
 
 namespace Ventilator
@@ -36,6 +37,7 @@ namespace Ventilator
             sink.Start(token.Token, sinkAddress).Wait(token.Token);
             foreach (var worker in workers)
                 worker.Start(token.Token, sourceAddress, sinkAddress).Wait(token.Token);
+            Task.Delay(1000, token.Token).Wait(token.Token);
             source.Start(token.Token, sourceAddress).Wait(token.Token);
 
             Console.WriteLine("Hit enter to terminate.");

@@ -4,14 +4,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using NetMQ;
 
-namespace ClientServer
+namespace MultiMulti
 {
-    public class Server
+    public class Client
     {
         private readonly NetMQContext _context;
         private readonly string _id;
 
-        public Server(NetMQContext context, string id)
+        public Client(NetMQContext context, string id)
         {
             _context = context;
             _id = id;
@@ -26,18 +26,17 @@ namespace ClientServer
 
         private void start(CancellationToken token, string address, TaskCompletionSource<bool> ready)
         {
-            using (var socket = _context.CreateResponseSocket())
+            using (var socket = _context.CreateRequestSocket())
             {
-                socket.Bind(address);
+                socket.Connect(address);
                 ready.SetResult(true);
                 while (token.IsCancellationRequested == false)
                 {
-                    var bytes = socket.Receive();
-                    var sender = Encoding.ASCII.GetString(bytes);
-                    Console.WriteLine("[{0}] Received request from {1}", _id, sender);
-                    Task.Delay(TimeSpan.FromSeconds(3), token).Wait(token);
-                    var message = string.Format("{0} says {1}.", _id, DateTime.Now);
-                    socket.Send(Encoding.ASCII.GetBytes(message));
+                    var bytes = Encoding.ASCII.GetBytes(_id);
+                    socket.Send(bytes);
+                    var response = socket.Receive();
+                    var message = Encoding.ASCII.GetString(response);
+                    Console.WriteLine("[{0}] Received - {1}", _id, message);
                 }
             }
         }
